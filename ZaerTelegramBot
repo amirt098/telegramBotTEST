@@ -1,0 +1,105 @@
+# # token = 5789168038:AAFHs7m2zt3EXcrmcggBWYppzEsLXMT8HJ4
+# 5650375410:AAGy_UcFYtCErDr6_00KiVsbOv1FRCYEwXg
+
+#this a bot written by python-telegram-bot library for paymon.money application by amir tohidi
+
+
+import logging
+from random import random
+
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, KeyboardButton
+from telegram.ext import (
+    Updater,
+    CommandHandler,
+    MessageHandler,
+    Filters,
+    ConversationHandler,
+    CallbackContext,
+)
+
+# Enable logging
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
+)
+
+logger = logging.getLogger(__name__)
+
+
+def _standardize_phone_number(phone_number: str):
+    if not phone_number.startswith("98"):
+        return "شماره موبایل معتبر نیست"
+    return str("0" + phone_number.removeprefix("98"))
+
+def generate_otp( mobile: str) -> str:
+    pin_code = "1234"
+    logger.debug(f'random generated pin_code : {pin_code}')
+    return pin_code
+
+
+class ZaerTelegramBot:
+
+    def __init__(self, token: str, auth_service: str):
+        self.token = token
+        self.auth_service = auth_service
+
+    def start(self, update: Update, context: CallbackContext):
+        """Starts the conversation and asks the user about their gender."""
+        reply_keyboard = [[KeyboardButton(text="ارسال شماره موبایل", request_contact=True)]]
+
+        update.message.reply_text(
+            ' زائر عزیز به ربات پیمان خوش آمدید!\n'
+            'برای استفاده از خدمات اپلیکیشن از لینک زیر اقدام به نصب و دانلود نمایید \n'
+            'https://paymon.money/'
+            '\n "برای گرفتن کد ورود بر روی دکمه ی ؛ "ارسال شماره موبایل کلیک کنید"',
+            reply_markup=ReplyKeyboardMarkup(
+                reply_keyboard, one_time_keyboard=True, resize_keyboard=True, input_field_placeholder='گرفتن کد ورود'
+            ),
+        )
+
+    @staticmethod
+    def echo(update: Update, context: CallbackContext) -> None:
+        """Echo the user message."""
+        update.message.reply_text('\n "برای گرفتن کد ورود بر روی دکمه ی ؛ "ارسال شماره موبایل کلیک کنید"', )
+
+    def contact(self, update: Update, context: CallbackContext):
+        standard_phone_number = _standardize_phone_number(update.message.contact.phone_number)
+        if not standard_phone_number.startswith('0'):
+            update.message.reply_text(standard_phone_number)
+
+        update.message.reply_text(
+            str("برای  شماره موبایل : " +
+                standard_phone_number
+                + "\n  کد ورود : " +
+                generate_otp(standard_phone_number)
+                + " است. "
+                )
+        )
+
+    def run(self):
+        """Run the bot."""
+        # Create the Updater and pass it your bot's token.
+        updater = Updater(self.token)
+
+        # Get the dispatcher to register handlers
+        dispatcher = updater.dispatcher
+
+        # on different commands - answer in Telegram
+        dispatcher.add_handler(CommandHandler("start", self.start))
+
+
+        # on non command i.e message - echo the message on Telegram
+        dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, self.echo))
+        dispatcher.add_handler(MessageHandler(Filters.contact, self.contact))
+        # Start the Bot
+        updater.start_polling()
+
+        # Run the bot until you press Ctrl-C or the process receives SIGINT,
+        # SIGTERM or SIGABRT. This should be used most of the time, since
+        # start_polling() is non-blocking and will stop the bot gracefully.
+        updater.idle()
+
+if __name__ == "__main__":
+    bot = ZaerTelegramBot(token="5650375410:AAGy_UcFYtCErDr6_00KiVsbOv1FRCYEwXg", auth_service='222' )
+    bot.run()
+
+   
